@@ -3,17 +3,24 @@ const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// مسیر فایل سیگنال خروجی از MT5
+// مسیر فایل CSV
 const filePath = './LiveSignal.csv';
 
 app.get('/signal', (req, res) => {
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
     const lines = raw.trim().split('\n');
-    const lastLine = lines[lines.length - 1];
-    const [symbol, entry, tp, sl, time] = lastLine.split(',');
 
-    res.json({ symbol, entry, tp, sl, time });
+    // فقط ۵ خط آخر
+    const last5Lines = lines.slice(-5);
+
+    // تبدیل هر خط به یک آبجکت JSON
+    const data = last5Lines.map(line => {
+      const [symbol, entry, tp, sl, time] = line.split(',');
+      return { symbol, entry, tp, sl, time };
+    });
+
+    res.json(data); // خروجی نهایی JSON
   } catch (err) {
     res.status(500).json({ error: 'Signal file not found or invalid format' });
   }
