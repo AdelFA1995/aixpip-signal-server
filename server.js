@@ -4,10 +4,12 @@ const fs = require('fs');
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // اضافه کردن برای خواندن JSON در POST
 
 const port = process.env.PORT || 3000;
 const filePath = './LiveSignal.csv';
 
+// GET: دریافت آخرین ۵ سیگنال
 app.get('/signal', (req, res) => {
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
@@ -23,11 +25,7 @@ app.get('/signal', (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
-// POST: دریافت سیگنال از ربات MT5 و ذخیره در فایل
+// POST: دریافت سیگنال از MT5 و ذخیره در فایل
 app.post('/signal', (req, res) => {
   const { symbol, entry, tp, sl, time, type } = req.body;
 
@@ -45,7 +43,7 @@ app.post('/signal', (req, res) => {
   }
 });
 
-// اجرای سرور
+// فقط یک بار اجرا
 app.listen(port, () => {
   console.log(`✅ Server is running on port ${port}`);
 });
