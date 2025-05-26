@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 
-const app = express();       // اول باید app ساخته بشه
-app.use(cors());             // بعدش middleware ها مثل cors بیاد
+const app = express();
+app.use(cors());
 
 const port = process.env.PORT || 3000;
 const filePath = './LiveSignal.csv';
