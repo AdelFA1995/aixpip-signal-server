@@ -1,28 +1,23 @@
-const cors = require('cors');
-app.use(cors());
 const express = require('express');
+const cors = require('cors');
 const fs = require('fs');
-const app = express();
-const port = process.env.PORT || 3000;
 
-// مسیر فایل CSV
+const app = express();       // اول باید app ساخته بشه
+app.use(cors());             // بعدش middleware ها مثل cors بیاد
+
+const port = process.env.PORT || 3000;
 const filePath = './LiveSignal.csv';
 
 app.get('/signal', (req, res) => {
   try {
     const raw = fs.readFileSync(filePath, 'utf8');
     const lines = raw.trim().split('\n');
-
-    // فقط ۵ خط آخر
     const last5Lines = lines.slice(-5);
-
-    // تبدیل هر خط به یک آبجکت JSON
     const data = last5Lines.map(line => {
-      const [symbol, entry, tp, sl, time] = line.split(',');
-      return { symbol, entry, tp, sl, time };
+      const [symbol, entry, tp, sl, time, type] = line.split(',');
+      return { symbol, entry, tp, sl, time, type };
     });
-
-    res.json(data); // خروجی نهایی JSON
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: 'Signal file not found or invalid format' });
   }
@@ -30,4 +25,27 @@ app.get('/signal', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+});
+
+// POST: دریافت سیگنال از ربات MT5 و ذخیره در فایل
+app.post('/signal', (req, res) => {
+  const { symbol, entry, tp, sl, time, type } = req.body;
+
+  if (!symbol || !entry || !tp || !sl || !time || !type) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  const newLine = `${symbol},${entry},${tp},${sl},${time},${type}\n`;
+
+  try {
+    fs.appendFileSync(filePath, newLine);
+    res.json({ success: true, message: 'Signal saved' });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not write to file' });
+  }
+});
+
+// اجرای سرور
+app.listen(port, () => {
+  console.log(`✅ Server is running on port ${port}`);
 });
